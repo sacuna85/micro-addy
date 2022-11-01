@@ -21,20 +21,22 @@ const Url = mongoose.model('Url', urlSchema)
 //-
 app.post('/urls', async (req, res) => {
     try {
-        const url = new Url({ url:req.body.url })        
-        const randomString = Math.random().toString(16).substr(2, 8)
+        const url = new Url({ url:req.body.url })       
+        let duplicateString = {}
+        let randomString = ''
+
+        while (duplicateString){
+            randomString = Math.random().toString(16).substr(2, 8)
+            duplicateString = await Url.findOne({ randomString:url.randomString })
+        }
+
         url.randomString = randomString
         url.microAddy = `localhost:3000/urls/${url.randomString}`
-
-        const duplicateUrl = Url.find({ microAddy:url.microAddy })
-
-        if(!duplicateUrl) {
-            await url.save()
-        }
+        await url.save()
 
         res.send(url.microAddy)
     } catch (e) {
-        res.status(500).send()
+        res.status(500).send(e)
     }
 })
 
